@@ -1,6 +1,11 @@
-export const getFromNode = async (data) => {
-  const result = await window.ipcRenderer.invoke("ipc-data", data);
-  console.log(result);
+export const getFromNode = async (resourceName, data) => {
+  const result = await window.ipcRenderer.invoke(resourceName, data);
+  return result;
+};
+
+export const getExchanges = async (data) => {
+  const result = await window.ipcRenderer.invoke("getExchanges", data);
+  return result;
 };
 
 export const sendMessageToNode = async (message) => {
