@@ -41,7 +41,7 @@ class MarketsConfig extends Component {
       let response = await getFromNode("addExchange", data);
       if (response != null) {
         this.setState({
-          ownExchanges: this.state.ownExchanges.concat([response]),
+          ownExchanges: response,
         });
       }
       this.setState({
@@ -56,11 +56,7 @@ class MarketsConfig extends Component {
   removeExchange = async (exchange) => {
     let response = await getFromNode("removeExchange", exchange);
     if (response != null) {
-      this.setState({
-        ownExchanges: this.state.ownExchanges.filter(
-          (name) => name != exchange
-        ),
-      });
+      this.setState({ ownExchanges: response });
     }
   };
 
@@ -77,22 +73,23 @@ class MarketsConfig extends Component {
             <h5 className="card-header">{t("Exchanges")}</h5>
             <div className="card-body">
               <ul className="list-group">
-                {this.state.ownExchanges.map((exchange) => {
-                  return (
-                    <li
-                      key={"own-" + exchange}
-                      className="list-group-item d-flex justify-content-between align-items-start"
-                    >
-                      <span className="my-auto">{exchange}</span>
-                      <button
-                        className="btn btn-danger ms-auto"
-                        onClick={() => this.removeExchange(exchange)}
+                {this.state.ownExchanges != null &&
+                  this.state.ownExchanges.map((exchange) => {
+                    return (
+                      <li
+                        key={"own-" + exchange.Name}
+                        className="list-group-item d-flex justify-content-between align-items-start"
                       >
-                        {t("Remove")}
-                      </button>
-                    </li>
-                  );
-                })}
+                        <span className="my-auto">{exchange.Name}</span>
+                        <button
+                          className="btn btn-danger ms-auto"
+                          onClick={() => this.removeExchange(exchange.Name)}
+                        >
+                          {t("Remove")}
+                        </button>
+                      </li>
+                    );
+                  })}
               </ul>
             </div>
           </div>

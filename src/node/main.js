@@ -4,7 +4,8 @@ const path = require("path");
 const isDev = require("electron-is-dev");
 const { ipcMain } = require("electron");
 
-const configController = require("./controllers/config");
+const exchangeController = require("./controllers/exchange");
+const transactionsController = require("./controllers/transactions");
 
 let mainWindow;
 
@@ -88,30 +89,23 @@ ipcMain.on("message", (event, arg) => {
 });
 
 ipcMain.handle("getExchanges", async () => {
-  return configController.getExchanges();
+  return exchangeController.getExchanges();
 });
 
 ipcMain.handle("getOwnExchanges", async () => {
-  return ["Binance", "Coinbase", "Kucoin"];
+  return await exchangeController.getOwnExchanges();
 });
 
 ipcMain.handle("addExchange", async (event, args) => {
-  console.log(args);
-
-  if (args.exchange) {
-    return args.exchange;
-  }
-  return null;
+  return await exchangeController.addExchange(args);
 });
 
 ipcMain.handle("removeExchange", async (event, args) => {
-  console.log(args);
+  return await exchangeController.removeExchange(args);
+});
 
-  if (args) {
-    return true;
-  }
-
-  return false;
+ipcMain.handle("getBalance", async (event, args) => {
+  return await transactionsController.getBalance(args);
 });
 
 ipcMain.handle("getOwnCoins", async () => {

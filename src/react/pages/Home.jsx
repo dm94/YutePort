@@ -15,7 +15,8 @@ class Home extends Component {
   }
 
   async componentDidMount() {
-    let response = await getFromNode("getOwnCoins");
+    let response = await getFromNode("getBalance", "poloniex");
+    //let response = await getFromNode("getOwnCoins");
 
     let total = 0;
     response.forEach((coin) => {
@@ -25,12 +26,23 @@ class Home extends Component {
     this.setState({ coinList: response, total: total });
   }
 
+  getBalance = async () => {
+    let response = await getFromNode("getBalance", "poloniex");
+    console.log(response);
+  };
+
   render() {
     const { t } = this.props;
 
     return (
       <div className="row">
         <div className="col-12">
+          <button
+            className="btn btn-primary float-end"
+            onClick={this.getBalance}
+          >
+            {t("Update balance")}
+          </button>
           <h1>
             {t("Portfolio")}{" "}
             <span className="badge bg-secondary">{this.state.total} USDT</span>
