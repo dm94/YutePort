@@ -4,14 +4,14 @@ import { getFromNode } from "../services/linker";
 
 export default (props) => {
   const [data, setData] = useState(null);
-  const primaryAxis = React.useMemo(
+  const primaryAxis = useMemo(
     () => ({
       getValue: (datum) => datum.date,
     }),
     []
   );
 
-  const secondaryAxes = React.useMemo(
+  const secondaryAxes = useMemo(
     () => [
       {
         getValue: (datum) => datum.total,
