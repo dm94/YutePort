@@ -17,4 +17,4 @@ npm run dev
 
 ## Supported Exchanges
 
-It is compatible with all exchanges supported by the [![CCXT library](https://github.com/ccxt/ccxt)].
+It is compatible with all exchanges supported by the [CCXT library](https://github.com/ccxt/ccxt).
