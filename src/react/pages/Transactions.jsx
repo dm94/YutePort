@@ -1,13 +1,15 @@
 import React, { Component } from "react";
 import { withTranslation } from "react-i18next";
 import ChartComponent from "../components/ChartComponent";
+import { getFromNode } from "../services/linker";
 
 class Transactions extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      exchange: "",
-      coin: "",
+      exchange: "Binance",
+      coin: "BTT",
+      history: [],
     };
   }
 
@@ -15,7 +17,11 @@ class Transactions extends Component {
     let exchange = this.props.match.params.exchange;
     let coin = this.props.match.params.coin;
 
-    this.setState({ exchange: exchange, coin: coin });
+    let dataCoin = await getFromNode("getCoinHistory", {
+      name: coin,
+      exchange: exchange,
+    });
+    this.setState({ exchange: exchange, coin: coin, history: dataCoin });
   }
 
   render() {
@@ -45,12 +51,34 @@ class Transactions extends Component {
                 <th scope="col">{t("Total")}</th>
                 <th scope="col">{t("Price USDT")}</th>
                 <th scope="col">{t("Total USDT")}</th>
+                <th scope="col">{t("Difference")}</th>
               </tr>
             </thead>
+            <tbody>{this.transactionRender()}</tbody>
           </table>
         </div>
       </div>
     );
+  }
+
+  transactionRender() {
+    if (this.state.history != null) {
+      let lastTotal = 0;
+      return this.state.history.map((transaction) => {
+        let difference = (lastTotal = transaction.quantity);
+        let date = new Date(transaction.date);
+        lastTotal = transaction.quantity;
+        return (
+          <tr key={"transaction-" + transaction.ID}>
+            <th scope="row">{date.toLocaleString()}</th>
+            <td>{transaction.quantity}</td>
+            <td>{transaction.price}</td>
+            <td>{transaction.quantity * transaction.price}</td>
+            <td>{difference}</td>
+          </tr>
+        );
+      });
+    }
   }
 }
 

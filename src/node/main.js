@@ -1,6 +1,5 @@
 const { app, BrowserWindow, Menu } = require("electron");
 
-const path = require("path");
 const isDev = require("electron-is-dev");
 const { ipcMain } = require("electron");
 
@@ -108,89 +107,50 @@ ipcMain.handle("getBalance", async (event, args) => {
   return await transactionsController.getBalance(args);
 });
 
-ipcMain.handle("getOwnCoins", async () => {
-  return [
-    {
-      name: "Bitcoin",
-      exchange: "Coinbase",
-      total: 0.00002,
-      price: 57100.44,
-      profit: 0,
-    },
-    {
-      name: "Cardano",
-      exchange: "Coinbase",
-      total: 0.00002,
-      price: 1.57,
-      profit: 0,
-    },
-  ];
-});
-
 ipcMain.handle("getCoinHistory", async (event, args) => {
   if (args != null) {
     if (args.exchange != null && args.name != null) {
-      if (args.exchange == "Coinbase" && args.name == "Bitcoin") {
-        return {
-          label: args.name + " - " + args.exchange,
-          data: [
-            {
-              date: new Date("November 23, 2021 03:24:00"),
-              total: 10,
-            },
-            {
-              date: new Date("November 24, 2021 03:24:00"),
-              total: 11,
-            },
-            {
-              date: new Date("November 25, 2021 03:24:00"),
-              total: 12,
-            },
-            {
-              date: new Date("November 26, 2021 03:24:00"),
-              total: 8,
-            },
-            {
-              date: new Date("November 27, 2021 03:24:00"),
-              total: 20,
-            },
-            {
-              date: new Date("November 28, 2021 03:24:00"),
-              total: 2,
-            },
-          ],
-        };
-      } else if (args.exchange == "Coinbase" && args.name == "Cardano") {
-        return {
-          label: args.name + " - " + args.exchange,
-          data: [
-            {
-              date: new Date("November 23, 2021 03:24:00"),
-              total: 1,
-            },
-            {
-              date: new Date("November 24, 2021 03:24:00"),
-              total: 2,
-            },
-            {
-              date: new Date("November 25, 2021 03:24:00"),
-              total: 50,
-            },
-            {
-              date: new Date("November 26, 2021 03:24:00"),
-              total: 38,
-            },
-            {
-              date: new Date("November 27, 2021 03:24:00"),
-              total: 21,
-            },
-            {
-              date: new Date("November 28, 2021 03:24:00"),
-              total: 45,
-            },
-          ],
-        };
+      let history = await transactionsController.getCoinHistoryFromDB(
+        args.name,
+        args.exchange
+      );
+
+      return history;
+    }
+  }
+  return null;
+});
+
+ipcMain.handle("getCoinHistoryFormated", async (event, args) => {
+  if (args != null) {
+    if (args.exchange != null && args.name != null) {
+      let history = await transactionsController.getCoinHistoryFromDB(
+        args.name,
+        args.exchange
+      );
+      let historyData = [];
+
+      if (history != null) {
+        history.forEach((transaction) => {
+          if (transaction.date != null && transaction.quantity != null) {
+            try {
+              historyData.push({
+                date: new Date(transaction.date),
+                total: Number(transaction.quantity),
+              });
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        });
       }
+
+      let historyWithFormat = {
+        label: args.name + " - " + args.exchange,
+        data: historyData,
+      };
+
+      return historyWithFormat;
     }
   }
   return null;

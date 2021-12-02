@@ -26,7 +26,7 @@ export default (props) => {
       let dataList = [];
 
       for (let coin of coinList) {
-        let dataCoin = await getFromNode("getCoinHistory", coin);
+        let dataCoin = await getFromNode("getCoinHistoryFormated", coin);
         if (dataCoin != null) {
           dataList.push(dataCoin);
         }
@@ -38,7 +38,7 @@ export default (props) => {
     getData();
   }, [props.coinList]);
 
-  if (data == null) {
+  if (data == null || data.length < 2) {
     return "";
   }
   return (

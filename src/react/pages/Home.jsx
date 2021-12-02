@@ -16,7 +16,6 @@ class Home extends Component {
 
   async componentDidMount() {
     let response = await getFromNode("getBalance", "poloniex");
-    //let response = await getFromNode("getOwnCoins");
 
     let total = 0;
     response.forEach((coin) => {
@@ -72,21 +71,23 @@ class Home extends Component {
   }
 
   coinListRender() {
-    return this.state.coinList.map((coin) => (
-      <tr key={coin.name + "-" + coin.market}>
-        <th scope="row">{coin.name}</th>
-        <td>{coin.exchange}</td>
-        <td>{coin.total}</td>
-        <td>{coin.price}</td>
-        <td>{coin.price * coin.total}</td>
-        <td>{coin.profit}</td>
-        <td>
-          <Link to={`/transactions/${coin.exchange}/${coin.name}`}>
-            <i className="fas fa-list"></i>
-          </Link>
-        </td>
-      </tr>
-    ));
+    if (this.state.coinList != null) {
+      return this.state.coinList.map((coin) => (
+        <tr key={coin.name + "-" + coin.market}>
+          <th scope="row">{coin.name}</th>
+          <td>{coin.exchange}</td>
+          <td>{coin.total}</td>
+          <td>{coin.price}</td>
+          <td>{coin.price * coin.total}</td>
+          <td>{coin.profit}</td>
+          <td>
+            <Link to={`/transactions/${coin.exchange}/${coin.name}`}>
+              <i className="fas fa-list"></i>
+            </Link>
+          </td>
+        </tr>
+      ));
+    }
   }
 }
 
