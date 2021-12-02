@@ -1,6 +1,7 @@
 ## Description
 
 YutePort is a simple portfolio designed to control the status of our cryptocurrencies in each exchange in an easy and automatic way.
+It uses a local database so it does not share data with anyone.
 
 ## Status
 
