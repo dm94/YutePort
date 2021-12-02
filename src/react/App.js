@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Switch, Route } from "react-router-dom";
+import { HashRouter, Switch, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import MarketsConfig from "./pages/MarketsConfig";
 import Transactions from "./pages/Transactions";
@@ -7,7 +7,7 @@ import Transactions from "./pages/Transactions";
 function App() {
   return (
     <div className="fluid-container p-2">
-      <BrowserRouter>
+      <HashRouter>
         <Switch>
           <Route path="/config" component={MarketsConfig} />
           <Route
@@ -17,7 +17,7 @@ function App() {
           <Route path="/" component={Home} />
           <Route path="*" component={Home} />
         </Switch>
-      </BrowserRouter>
+      </HashRouter>
     </div>
   );
 }

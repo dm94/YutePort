@@ -1,9 +1,11 @@
 {
   "name": "yuteport",
-  "version": "0.2.1",
+  "version": "0.3.0",
+  "description": "Portfolio designed to control the status of our cryptocurrencies in each exchange",
   "private": true,
   "license": "UNLICENSED",
   "author": "Daniel Martín",
+  "homepage": "./",
   "repository": {
     "type": "git",
     "url": "https://github.com/dm94/YutePort"
@@ -15,7 +17,6 @@
     "better-sqlite3": "^7.4.5",
     "bootstrap": "^5.1.3",
     "ccxt": "^1.62.44",
-    "dotenv": "^10.0.0",
     "electron-is-dev": "^2.0.0",
     "i18next": "^21.5.4",
     "jquery": "^3.6.0",
@@ -27,16 +28,61 @@
     "react-scripts": "^3.4.4",
     "winston": "^3.3.3"
   },
-  "main": "src/node/main.js",
+  "build": {
+    "appId": "com.deeme.yuteport",
+    "productName": "YutePort",
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Development"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "dm94",
+      "repo": "YutePort"
+    }
+  },
+  "main": "public/electron.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test --env=jsdom",
+    "react-eject": "react-scripts eject",
     "electron": "electron .",
     "electron-dev": "ELECTRON_START_URL=http://localhost:3000 electron .",
-    "dev": "concurrently --kill-others \"npm run start\" \"npm run electron\"",
-    "rebuild": "electron-rebuild -f -w better-sqlite3"
+    "dev": "concurrently --kill-others \"npm run react-start\" \"npm run electron\"",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "build": "yarn react-build && yarn dist",
+    "release": "yarn react-build && electron-builder --publish=always"
   },
   "eslintConfig": {
     "extends": [

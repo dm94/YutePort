@@ -9,7 +9,7 @@ const logController = require("./logger");
 controller.query = async (sql, params = []) => {
   try {
     const path = Path.join(__dirname, dbLocation);
-    if (fs.existsSync(path)) {
+    if (!fs.existsSync(path)) {
       await controller.generateDB();
     }
   } catch (err) {

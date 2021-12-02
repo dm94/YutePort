@@ -2,9 +2,10 @@ const { app, BrowserWindow, Menu } = require("electron");
 
 const isDev = require("electron-is-dev");
 const { ipcMain } = require("electron");
-
+const path = require("path");
 const exchangeController = require("./controllers/exchange");
 const transactionsController = require("./controllers/transactions");
+const pjson = require("../package.json");
 
 let mainWindow;
 
@@ -21,24 +22,18 @@ function createWindow() {
     },
   });
 
-  let path = isDev
+  let pathURL = isDev
     ? "http://localhost:3000"
-    : `file://${path.join(__dirname, "../build/index.html")}`;
+    : `file://${__dirname}/../build/index.html`;
 
   let menu = Menu.buildFromTemplate([
     {
       label: "Menu",
       submenu: [
         {
-          label: "Portfolio",
+          label: "Inicio",
           click() {
-            mainWindow.loadURL(path);
-          },
-        },
-        {
-          label: "Config",
-          click() {
-            mainWindow.loadURL(path + "/config");
+            mainWindow.loadURL(pathURL);
           },
         },
         { type: "separator" },
@@ -57,9 +52,10 @@ function createWindow() {
         },
       ],
     },
+    { label: "v " + pjson.version },
   ]);
   Menu.setApplicationMenu(menu);
-  mainWindow.loadURL(path);
+  mainWindow.loadURL(pathURL);
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }

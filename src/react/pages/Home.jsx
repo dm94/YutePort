@@ -42,6 +42,12 @@ class Home extends Component {
           >
             {t("Update balance")}
           </button>
+
+          <Link to={`/config`}>
+            <button className="btn btn-secondary float-end">
+              {t("Exchange Config")}
+            </button>
+          </Link>
           <h1>
             {t("Portfolio")}{" "}
             <span className="badge bg-secondary">{this.state.total} USDT</span>
