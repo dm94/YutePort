@@ -73,7 +73,7 @@ class Home extends Component {
   coinListRender() {
     if (this.state.coinList != null) {
       return this.state.coinList.map((coin) => (
-        <tr key={coin.name + "-" + coin.market}>
+        <tr key={coin.name + "-" + coin.exchange}>
           <th scope="row">{coin.name}</th>
           <td>{coin.exchange}</td>
           <td>{coin.total}</td>
