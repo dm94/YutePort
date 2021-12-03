@@ -81,8 +81,8 @@
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "build": "yarn react-build && yarn dist",
-    "release": "yarn react-build && electron-builder --publish=always"
+    "build": "npm run react-build && electron-builder",
+    "release": "npm run react-build && electron-builder --publish=always"
   },
   "eslintConfig": {
     "extends": [
