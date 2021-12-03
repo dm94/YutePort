@@ -100,7 +100,7 @@ ipcMain.handle("removeExchange", async (event, args) => {
 });
 
 ipcMain.handle("getBalance", async (event, args) => {
-  return await transactionsController.getBalance(args);
+  return await transactionsController.getBalance();
 });
 
 ipcMain.handle("getCoinHistory", async (event, args) => {
@@ -112,6 +112,45 @@ ipcMain.handle("getCoinHistory", async (event, args) => {
       );
 
       return history;
+    }
+  }
+  return null;
+});
+
+ipcMain.handle("getCoinHistoryFormatedUSDT", async (event, args) => {
+  if (args != null) {
+    if (args.exchange != null && args.name != null) {
+      let history = await transactionsController.getCoinHistoryFromDB(
+        args.name,
+        args.exchange
+      );
+      let historyData = [];
+
+      if (history != null) {
+        history.forEach((transaction) => {
+          if (
+            transaction.date != null &&
+            transaction.quantity != null &&
+            transaction.price != null
+          ) {
+            try {
+              historyData.push({
+                date: new Date(transaction.date),
+                total: transaction.quantity * transaction.price,
+              });
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        });
+      }
+
+      let historyWithFormat = {
+        label: args.name + " - " + args.exchange,
+        data: historyData,
+      };
+
+      return historyWithFormat;
     }
   }
   return null;

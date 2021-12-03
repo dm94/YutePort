@@ -1,12 +1,15 @@
 import React, { Component } from "react";
 import { getExchanges, getFromNode } from "../services/linker";
 import { withTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 class MarketsConfig extends Component {
   constructor(props) {
     super(props);
     this.state = {
       exchanges: [],
+      graphSelectInput: localStorage.getItem("graphType"),
+      autoUpdateInput: localStorage.getItem("autoUpdate"),
       exchangeInputData: "",
       apiKeyInputData: "",
       apiSecretInputData: "",
@@ -53,6 +56,11 @@ class MarketsConfig extends Component {
     }
   };
 
+  saveConfig = async () => {
+    localStorage.setItem("graphType", this.state.graphSelectInput);
+    localStorage.setItem("autoUpdate", this.state.autoUpdateInput);
+  };
+
   removeExchange = async (exchange) => {
     let response = await getFromNode("removeExchange", exchange);
     if (response != null) {
@@ -65,36 +73,17 @@ class MarketsConfig extends Component {
 
     return (
       <div className="row">
+        <div className="col-12 mb-2">
+          <Link to={"/"}>
+            <button className="btn btn-secondary">
+              <i className="fas fa-arrow-left"></i> {t("Portfolio")}
+            </button>
+          </Link>
+        </div>
         <div className="col-12">
           <h1>{t("Config")}</h1>
         </div>
-        <div className="col-6">
-          <div className="card">
-            <h5 className="card-header">{t("Exchanges")}</h5>
-            <div className="card-body">
-              <ul className="list-group">
-                {this.state.ownExchanges != null &&
-                  this.state.ownExchanges.map((exchange) => {
-                    return (
-                      <li
-                        key={"own-" + exchange.Name}
-                        className="list-group-item d-flex justify-content-between align-items-start"
-                      >
-                        <span className="my-auto">{exchange.Name}</span>
-                        <button
-                          className="btn btn-danger ms-auto"
-                          onClick={() => this.removeExchange(exchange.Name)}
-                        >
-                          {t("Remove")}
-                        </button>
-                      </li>
-                    );
-                  })}
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div className="col-6">
+        <div className="col-xl-6 mb-2">
           <div className="card">
             <h5 className="card-header">{t("Add a new exchange")}</h5>
             <div className="card-body">
@@ -172,6 +161,88 @@ class MarketsConfig extends Component {
             <div className="card-footer text-end">
               <button className="btn btn-primary" onClick={this.addExchange}>
                 {t("Add")}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="col-xl-6 mb-2">
+          <div className="card">
+            <h5 className="card-header">{t("Exchanges")}</h5>
+            <div className="card-body">
+              <ul className="list-group">
+                {this.state.ownExchanges != null &&
+                  this.state.ownExchanges.map((exchange) => {
+                    return (
+                      <li
+                        key={"own-" + exchange.Name}
+                        className="list-group-item d-flex justify-content-between align-items-start"
+                      >
+                        <span className="my-auto">{exchange.Name}</span>
+                        <button
+                          className="btn btn-danger ms-auto"
+                          onClick={() => this.removeExchange(exchange.Name)}
+                        >
+                          {t("Remove")}
+                        </button>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="col-xl-6 mb-2">
+          <div className="card">
+            <h5 className="card-header">{t("YutePort Config")}</h5>
+            <div className="card-body">
+              <div className="mb-2">
+                <label htmlFor="exchangeInput" className="form-label">
+                  {t("Show the graph with")}
+                </label>
+                <select
+                  className="form-select"
+                  id="graphConfig"
+                  value={this.state.graphSelectInput}
+                  onChange={(evt) =>
+                    this.setState({
+                      graphSelectInput: evt.target.value,
+                    })
+                  }
+                >
+                  <option value="usdt">USDT</option>
+                  <option value="quantity">{t("Quantity")}</option>
+                </select>
+              </div>
+              <div className="mb-2">
+                <label htmlFor="exchangeInput" className="form-label">
+                  {t("Auto update balance")}
+                </label>
+                <select
+                  className="form-select"
+                  id="autoUpdateConfig"
+                  value={this.state.autoUpdateInput}
+                  onChange={(evt) =>
+                    this.setState({
+                      autoUpdateInput: evt.target.value,
+                    })
+                  }
+                >
+                  <option value="off">{t("Off")}</option>
+                  <option value="5">5 {t("mins")}</option>
+                  <option value="15">15 {t("mins")}</option>
+                  <option value="30">30 {t("mins")}</option>
+                  <option value="60">1 {t("hour")}</option>
+                  <option value="120">2 {t("hours")}</option>
+                  <option value="240">4 {t("hours")}</option>
+                  <option value="480">8 {t("hours")}</option>
+                  <option value="960">16 {t("hours")}</option>
+                  <option value="1440">1 {t("day")}</option>
+                </select>
+              </div>
+            </div>
+            <div className="card-footer text-end">
+              <button className="btn btn-primary" onClick={this.saveConfig}>
+                {t("Save")}
               </button>
             </div>
           </div>

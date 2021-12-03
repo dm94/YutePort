@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { withTranslation } from "react-i18next";
 import ChartComponent from "../components/ChartComponent";
 import { getFromNode } from "../services/linker";
+import { Link } from "react-router-dom";
 
 class Transactions extends Component {
   constructor(props) {
@@ -28,6 +29,13 @@ class Transactions extends Component {
     const { t } = this.props;
     return (
       <div className="row">
+        <div className="col-12 mb-2">
+          <Link to={"/"}>
+            <button className="btn btn-secondary">
+              <i className="fas fa-arrow-left"></i> {t("Portfolio")}
+            </button>
+          </Link>
+        </div>
         <div className="col-12 my-2">
           <h1>
             Transactions {this.state.exchange} / {this.state.coin}
@@ -64,20 +72,22 @@ class Transactions extends Component {
   transactionRender() {
     if (this.state.history != null) {
       let lastTotal = 0;
-      return this.state.history.map((transaction) => {
-        let difference = (lastTotal = transaction.quantity);
-        let date = new Date(transaction.date);
-        lastTotal = transaction.quantity;
-        return (
-          <tr key={"transaction-" + transaction.ID}>
-            <th scope="row">{date.toLocaleString()}</th>
-            <td>{transaction.quantity}</td>
-            <td>{transaction.price}</td>
-            <td>{transaction.quantity * transaction.price}</td>
-            <td>{difference}</td>
-          </tr>
-        );
-      });
+      return this.state.history
+        .map((transaction) => {
+          let difference = (lastTotal - transaction.quantity) * -1;
+          let date = new Date(transaction.date);
+          lastTotal = transaction.quantity;
+          return (
+            <tr key={"transaction-" + transaction.ID}>
+              <th scope="row">{date.toLocaleString()}</th>
+              <td>{transaction.quantity}</td>
+              <td>{transaction.price}</td>
+              <td>{transaction.quantity * transaction.price}</td>
+              <td>{difference}</td>
+            </tr>
+          );
+        })
+        .reverse();
     }
   }
 }

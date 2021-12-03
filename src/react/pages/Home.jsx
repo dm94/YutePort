@@ -12,10 +12,27 @@ class Home extends Component {
       coinList: [],
       total: 0,
     };
+    this.timer = null;
   }
 
-  async componentDidMount() {
-    let response = await getFromNode("getBalance", "poloniex");
+  componentDidMount() {
+    this.getBalance();
+
+    let autoUpdate = localStorage.getItem("autoUpdate");
+
+    if (autoUpdate != null && autoUpdate != "off") {
+      this.timer = setInterval(this.getBalance, 60000 * autoUpdate);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.timer != null) {
+      clearInterval(this.timer);
+    }
+  }
+
+  getBalance = async () => {
+    let response = await getFromNode("getBalance");
 
     let total = 0;
     response.forEach((coin) => {
@@ -23,11 +40,6 @@ class Home extends Component {
     });
 
     this.setState({ coinList: response, total: total });
-  }
-
-  getBalance = async () => {
-    let response = await getFromNode("getBalance", "poloniex");
-    console.log(response);
   };
 
   render() {
@@ -43,14 +55,16 @@ class Home extends Component {
             {t("Update balance")}
           </button>
 
-          <Link to={`/config`}>
+          <Link to={"/config"}>
             <button className="btn btn-secondary float-end">
-              {t("Exchange Config")}
+              {t("Config")}
             </button>
           </Link>
           <h1>
             {t("Portfolio")}{" "}
-            <span className="badge bg-secondary">{this.state.total} USDT</span>
+            <span className="badge bg-secondary">
+              {Math.round(this.state.total * 1000) / 1000} USDT
+            </span>
           </h1>
         </div>
         <div className="col-12" id="main-chart">

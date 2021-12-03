@@ -98,7 +98,8 @@ controller.updateExchangeHistory = async (exchangeid, balance) => {
         if (
           lastTransaction == null ||
           (lastTransaction.quantity != null &&
-            lastTransaction.quantity != coin.total)
+            lastTransaction.quantity != coin.total) ||
+          (lastTransaction.price != null && lastTransaction.price != coin.price)
         ) {
           controller.insertNewTransaction(
             exchangeid,
