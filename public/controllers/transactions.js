@@ -1,6 +1,7 @@
 const controller = {};
 const ccxt = require("ccxt");
 const dbController = require("./database");
+const logController = require("./logger");
 
 controller.getBalance = async () => {
   let result = await dbController.query("select * from exchanges");
@@ -61,10 +62,28 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
       .filter((coin) => coin.total > 0);
     const promises = totalBalance.map(async (coin) => {
       let price = 1;
-      if (coin.name != "USDT" && coin.name != "USDC") {
-        let priceData = await exchange.fetchTicker(coin.name + "/USDT");
-        if (priceData != null) {
-          price = priceData.last;
+      if (coin.name != "USDT" && coin.name != "USDC" && coin.name != "USD") {
+        try {
+          let priceData = await exchange.fetchTicker(coin.name + "/USDT");
+          if (priceData != null) {
+            price = priceData.last;
+          }
+        } catch (e) {
+          try {
+            let priceData = await exchange.fetchTicker(coin.name + "/USDC");
+            if (priceData != null) {
+              price = priceData.last;
+            }
+          } catch (er) {
+            try {
+              let priceData = await exchange.fetchTicker(coin.name + "/USD");
+              if (priceData != null) {
+                price = priceData.last;
+              }
+            } catch (ert) {
+              logController.error(ert.message);
+            }
+          }
         }
       }
       return {

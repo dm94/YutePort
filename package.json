@@ -1,6 +1,6 @@
 {
   "name": "yuteport",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Portfolio designed to control the status of our cryptocurrencies in each exchange",
   "private": true,
   "license": "UNLICENSED",

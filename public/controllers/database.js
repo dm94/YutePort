@@ -7,14 +7,7 @@ const Database = require("better-sqlite3");
 const logController = require("./logger");
 
 controller.query = async (sql, params = []) => {
-  try {
-    const path = Path.join(__dirname, dbLocation);
-    if (!fs.existsSync(path)) {
-      await controller.generateDB();
-    }
-  } catch (err) {
-    logController.error(err);
-  }
+  await controller.generateDB();
 
   const db = new Database(dbLocation);
   const stmt = db.prepare(sql);
@@ -24,14 +17,7 @@ controller.query = async (sql, params = []) => {
 };
 
 controller.get = async (sql, params = []) => {
-  try {
-    const path = Path.join(__dirname, dbLocation);
-    if (fs.existsSync(path)) {
-      await controller.generateDB();
-    }
-  } catch (err) {
-    logController.error(err);
-  }
+  await controller.generateDB();
 
   const db = new Database(dbLocation);
   const stmt = db.prepare(sql);
@@ -41,14 +27,7 @@ controller.get = async (sql, params = []) => {
 };
 
 controller.run = async (sql, params = []) => {
-  try {
-    const path = Path.join(__dirname, dbLocation);
-    if (fs.existsSync(path)) {
-      await controller.generateDB();
-    }
-  } catch (err) {
-    logController.error(err);
-  }
+  await controller.generateDB();
 
   try {
     const db = new Database(dbLocation);
@@ -56,13 +35,21 @@ controller.run = async (sql, params = []) => {
     stmt.run(params);
     return true;
   } catch (e) {
-    logController.error(e);
+    logController.error(e.message);
   }
 
   return false;
 };
 
 controller.generateDB = () => {
+  try {
+    const path = Path.join(dbLocation);
+    if (fs.existsSync(path)) {
+      return;
+    }
+  } catch (err) {
+    logController.error(err.message);
+  }
   let db = new Database(dbLocation);
 
   db.exec(
