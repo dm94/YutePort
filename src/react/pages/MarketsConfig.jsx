@@ -15,6 +15,8 @@ class MarketsConfig extends Component {
       apiSecretInputData: "",
       apiPasswordInputData: "",
       ownExchanges: [],
+      apiKeyBscscan: "",
+      metamaskAddress: "",
     };
   }
 
@@ -56,6 +58,27 @@ class MarketsConfig extends Component {
     }
   };
 
+  addMetamask = async () => {
+    if (this.state.apiKeyBscscan != "" && this.state.metamaskAddress != "") {
+      let data = {
+        exchange: "metamask",
+        apikey: this.state.apiKeyBscscan,
+        apisecret: this.state.metamaskAddress,
+        apipassword: undefined,
+      };
+      let response = await getFromNode("addExchange", data);
+      if (response != null) {
+        this.setState({
+          ownExchanges: response,
+        });
+      }
+      this.setState({
+        metamaskAddress: "",
+        apiKeyBscscan: "",
+      });
+    }
+  };
+
   saveConfig = async () => {
     localStorage.setItem("graphType", this.state.graphSelectInput);
     localStorage.setItem("autoUpdate", this.state.autoUpdateInput);
@@ -83,7 +106,7 @@ class MarketsConfig extends Component {
         <div className="col-12">
           <h1>{t("Config")}</h1>
         </div>
-        <div className="col-xl-6 mb-2">
+        <div className="col-xl-4 mb-2">
           <div className="card">
             <h5 className="card-header">{t("Add a new exchange")}</h5>
             <div className="card-body">
@@ -165,7 +188,7 @@ class MarketsConfig extends Component {
             </div>
           </div>
         </div>
-        <div className="col-xl-6 mb-2">
+        <div className="col-xl-4 mb-2">
           <div className="card">
             <h5 className="card-header">{t("Exchanges")}</h5>
             <div className="card-body">
@@ -191,7 +214,7 @@ class MarketsConfig extends Component {
             </div>
           </div>
         </div>
-        <div className="col-xl-6 mb-2">
+        <div className="col-xl-4 mb-2">
           <div className="card">
             <h5 className="card-header">{t("YutePort Config")}</h5>
             <div className="card-body">
@@ -243,6 +266,50 @@ class MarketsConfig extends Component {
             <div className="card-footer text-end">
               <button className="btn btn-primary" onClick={this.saveConfig}>
                 {t("Save")}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="col-xl-4 mb-2">
+          <div className="card">
+            <h5 className="card-header">{t("Add a new Smart Chain Wallet")}</h5>
+            <div className="card-body">
+              <div className="mb-2">
+                <label htmlFor="apiInputMetamask" className="form-label">
+                  {t("API Key Bscscan")}
+                </label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="apiInputMetamask"
+                  value={this.state.apiKeyBscscan}
+                  onChange={(evt) =>
+                    this.setState({
+                      apiKeyBscscan: evt.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="mb-2">
+                <label htmlFor="metamaskAddress" className="form-label">
+                  {t("Smart Chain Address")}
+                </label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="metamaskAddress"
+                  value={this.state.metamaskAddress}
+                  onChange={(evt) =>
+                    this.setState({
+                      metamaskAddress: evt.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <div className="card-footer text-end">
+              <button className="btn btn-primary" onClick={this.addMetamask}>
+                {t("Add MetaMask")}
               </button>
             </div>
           </div>

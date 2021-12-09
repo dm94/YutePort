@@ -2,18 +2,27 @@ const controller = {};
 const ccxt = require("ccxt");
 const dbController = require("./database");
 const logController = require("./logger");
+const btcscanConnector = require("./btcscanConnector");
 
 controller.getBalance = async () => {
   let result = await dbController.query("select * from exchanges");
   let allBalances = [];
   for (let i = 0; i < result.length; i++) {
     const ex = result[i];
-    let exchangeBalance = await controller.getBalancesFromExchange(
-      ex.Name,
-      ex.Key,
-      ex.Secret,
-      ex.Password
-    );
+    let exchangeBalance = [];
+    if (ex.Name != "metamask") {
+      exchangeBalance = await controller.getBalancesFromExchange(
+        ex.Name,
+        ex.Key,
+        ex.Secret,
+        ex.Password
+      );
+    } else {
+      exchangeBalance = await controller.getBalanceFromMetamask(
+        ex.Key,
+        ex.Secret
+      );
+    }
     controller.updateExchangeHistory(ex.ID, exchangeBalance);
     allBalances = allBalances.concat(exchangeBalance);
   }
@@ -28,12 +37,20 @@ controller.getExchangeBalance = async (name) => {
   let allBalances = [];
   for (let i = 0; i < result.length; i++) {
     const ex = result[i];
-    let exchangeBalance = await controller.getBalancesFromExchange(
-      ex.Name,
-      ex.Key,
-      ex.Secret,
-      ex.Password
-    );
+    let exchangeBalance = [];
+    if (ex.Name != "metamask") {
+      exchangeBalance = await controller.getBalancesFromExchange(
+        ex.Name,
+        ex.Key,
+        ex.Secret,
+        ex.Password
+      );
+    } else {
+      exchangeBalance = await controller.getBalanceFromMetamask(
+        ex.Key,
+        ex.Secret
+      );
+    }
     controller.updateExchangeHistory(ex.ID, exchangeBalance);
     allBalances = allBalances.concat(exchangeBalance);
   }
@@ -97,6 +114,25 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
     return await Promise.all(promises);
   }
   return totalBalance;
+};
+
+controller.getBalanceFromMetamask = async (apiKey, address) => {
+  let bnbPrice = await btcscanConnector.getBnbPrice(apiKey);
+  let metamaskTotal = await btcscanConnector.getBnbBalance(apiKey, address);
+
+  if (metamaskTotal == null || bnbPrice == null) {
+    return [];
+  }
+
+  return [
+    {
+      name: "BNB",
+      exchange: "metamask",
+      total: metamaskTotal,
+      price: bnbPrice,
+      profit: 0,
+    },
+  ];
 };
 
 /**

@@ -11,6 +11,8 @@ class Home extends Component {
     this.state = {
       coinList: [],
       total: 0,
+      exchangeList: [],
+      exchangeFilter: "All",
     };
     this.timer = null;
   }
@@ -32,14 +34,30 @@ class Home extends Component {
   }
 
   getBalance = async () => {
-    let response = await getFromNode("getBalance");
-
+    let response = null;
     let total = 0;
+    let exchangeList = this.state.exchangeList;
+
+    if (this.state.exchangeFilter == "All") {
+      response = await getFromNode("getBalance");
+    } else {
+      response = await getFromNode("getBalanceFromExchange", {
+        exchange: this.state.exchangeFilter,
+      });
+    }
     response.forEach((coin) => {
       total += coin.price * coin.total;
+
+      if (!exchangeList.includes(coin.exchange)) {
+        exchangeList.push(coin.exchange);
+      }
     });
 
-    this.setState({ coinList: response, total: total });
+    this.setState({
+      coinList: response,
+      total: total,
+      exchangeList: exchangeList,
+    });
   };
 
   render() {
@@ -70,6 +88,27 @@ class Home extends Component {
         <div className="col-12" id="main-chart">
           <ChartComponent coinList={this.state.coinList} />
         </div>
+        <div className="col-12 my-3">
+          <div className="btn-group" role="group" aria-label="Exchange Filters">
+            <button
+              key="btn-all"
+              type="button"
+              className={
+                this.state.exchangeFilter == "All"
+                  ? "btn btn-outline-secondary active"
+                  : "btn btn-outline-secondary"
+              }
+              onClick={() => {
+                this.setState({ exchangeFilter: "All" }, () => {
+                  this.getBalance();
+                });
+              }}
+            >
+              {t("All")}
+            </button>
+            {this.exchangeListRender()}
+          </div>
+        </div>
         <div className="col-12">
           <table className="table table-striped">
             <thead>
@@ -90,12 +129,35 @@ class Home extends Component {
     );
   }
 
+  exchangeListRender() {
+    if (this.state.exchangeList != null) {
+      return this.state.exchangeList.map((exchangeName) => (
+        <button
+          key={"btn-" + exchangeName}
+          type="button"
+          className={
+            this.state.exchangeFilter == exchangeName
+              ? "btn btn-outline-secondary active text-capitalize"
+              : "btn btn-outline-secondary text-capitalize"
+          }
+          onClick={() => {
+            this.setState({ exchangeFilter: exchangeName }, () => {
+              this.getBalance();
+            });
+          }}
+        >
+          {exchangeName}
+        </button>
+      ));
+    }
+  }
+
   coinListRender() {
     if (this.state.coinList != null) {
       return this.state.coinList.map((coin) => (
         <tr key={coin.name + "-" + coin.exchange}>
           <th scope="row">{coin.name}</th>
-          <td>{coin.exchange}</td>
+          <td className="text-capitalize">{coin.exchange}</td>
           <td>{coin.total}</td>
           <td>{coin.price}</td>
           <td>{coin.price * coin.total}</td>

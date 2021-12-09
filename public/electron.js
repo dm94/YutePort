@@ -103,6 +103,13 @@ ipcMain.handle("getBalance", async (event, args) => {
   return await transactionsController.getBalance();
 });
 
+ipcMain.handle("getBalanceFromExchange", async (event, args) => {
+  if (args != null && args.exchange != null) {
+    return await transactionsController.getExchangeBalance(args.exchange);
+  }
+  return [];
+});
+
 ipcMain.handle("getCoinHistory", async (event, args) => {
   if (args != null) {
     if (args.exchange != null && args.name != null) {
