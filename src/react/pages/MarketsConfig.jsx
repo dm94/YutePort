@@ -8,8 +8,12 @@ class MarketsConfig extends Component {
     super(props);
     this.state = {
       exchanges: [],
-      graphSelectInput: localStorage.getItem("graphType"),
-      autoUpdateInput: localStorage.getItem("autoUpdate"),
+      graphSelectInput: localStorage.getItem("graphType")
+        ? localStorage.getItem("graphType")
+        : "usdt",
+      autoUpdateInput: localStorage.getItem("autoUpdate")
+        ? localStorage.getItem("autoUpdate")
+        : "off",
       exchangeInputData: "",
       apiKeyInputData: "",
       apiSecretInputData: "",

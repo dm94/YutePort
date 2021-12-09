@@ -4,7 +4,6 @@ import { getFromNode } from "../services/linker";
 
 export default (props) => {
   const [graphData, setData] = useState(null);
-  const [graphType] = useState(localStorage.getItem("graphType"));
 
   const primaryAxis = useMemo(
     () => ({
@@ -26,6 +25,9 @@ export default (props) => {
     async function getData() {
       let coinList = props.coinList;
       let dataList = [];
+      let graphType = localStorage.getItem("graphType")
+        ? localStorage.getItem("graphType")
+        : "usdt";
 
       let requestType =
         graphType === "quantity"
