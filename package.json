@@ -1,6 +1,6 @@
 {
   "name": "yuteport",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Portfolio designed to control the status of our cryptocurrencies in each exchange",
   "private": true,
   "license": "UNLICENSED",
@@ -75,7 +75,7 @@
   "main": "public/electron.js",
   "scripts": {
     "react-start": "react-scripts start",
-    "react-build": "react-scripts build",
+    "react-build": "CI=false react-scripts build",
     "react-test": "react-scripts test --env=jsdom",
     "react-eject": "react-scripts eject",
     "electron": "electron .",

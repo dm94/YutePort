@@ -22,7 +22,7 @@ class Home extends Component {
 
     let autoUpdate = localStorage.getItem("autoUpdate");
 
-    if (autoUpdate != null && autoUpdate != "off") {
+    if (autoUpdate && autoUpdate !== "off") {
       this.timer = setInterval(this.getBalance, 60000 * autoUpdate);
     }
   }
@@ -38,7 +38,7 @@ class Home extends Component {
     let total = 0;
     let exchangeList = this.state.exchangeList;
 
-    if (this.state.exchangeFilter == "All") {
+    if (this.state.exchangeFilter === "All") {
       response = await getFromNode("getBalance");
     } else {
       response = await getFromNode("getBalanceFromExchange", {
@@ -94,7 +94,7 @@ class Home extends Component {
               key="btn-all"
               type="button"
               className={
-                this.state.exchangeFilter == "All"
+                this.state.exchangeFilter === "All"
                   ? "btn btn-outline-secondary active"
                   : "btn btn-outline-secondary"
               }
@@ -136,7 +136,7 @@ class Home extends Component {
           key={"btn-" + exchangeName}
           type="button"
           className={
-            this.state.exchangeFilter == exchangeName
+            this.state.exchangeFilter === exchangeName
               ? "btn btn-outline-secondary active text-capitalize"
               : "btn btn-outline-secondary text-capitalize"
           }

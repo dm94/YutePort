@@ -34,16 +34,16 @@ class MarketsConfig extends Component {
 
   addExchange = async () => {
     if (
-      this.state.exchangeInputData != "" &&
-      this.state.apiKeyInputData != "" &&
-      this.state.apiSecretInputData != ""
+      this.state.exchangeInputData !== "" &&
+      this.state.apiKeyInputData !== "" &&
+      this.state.apiSecretInputData !== ""
     ) {
       let data = {
         exchange: this.state.exchangeInputData,
         apikey: this.state.apiKeyInputData,
         apisecret: this.state.apiSecretInputData,
         apipassword:
-          this.state.apiPasswordInputData != ""
+          this.state.apiPasswordInputData !== ""
             ? this.state.apiPasswordInputData
             : undefined,
       };
@@ -63,7 +63,7 @@ class MarketsConfig extends Component {
   };
 
   addMetamask = async () => {
-    if (this.state.apiKeyBscscan != "" && this.state.metamaskAddress != "") {
+    if (this.state.apiKeyBscscan !== "" && this.state.metamaskAddress !== "") {
       let data = {
         exchange: "metamask",
         apikey: this.state.apiKeyBscscan,

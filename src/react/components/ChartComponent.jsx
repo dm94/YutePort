@@ -54,7 +54,7 @@ export default (props) => {
     graphData[0].data.length > 0
   ) {
     let data = graphData;
-    if (data.length == 1) {
+    if (data.length === 1) {
       let defaultData = {
         label: "Default",
         data: [{ date: new Date(), total: 1 }],
