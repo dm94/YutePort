@@ -99,7 +99,7 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
                 coin.name
               );
               if (priceData != null && priceData !== 0) {
-                price = priceData.last;
+                price = priceData;
               }
             } catch (er) {
               logController.error(er.message);
