@@ -21,6 +21,9 @@ class MarketsConfig extends Component {
       ownExchanges: [],
       apiKeyBscscan: "",
       metamaskAddress: "",
+      apiInputCoinMarkerCap: "",
+      metamaskCoin: "",
+      metamaskContract: "",
     };
   }
 
@@ -28,9 +31,41 @@ class MarketsConfig extends Component {
     let exchanges = await getExchanges();
 
     let response = await getFromNode("getOwnExchanges");
+    let apiKeyCoin = await getFromNode("getConfigValue", {
+      configname: "coinMarketCapAPI",
+    });
+    let apiKeyBscscan = await getFromNode("getConfigValue", {
+      configname: "bscScanAPI",
+    });
 
-    this.setState({ exchanges: exchanges, ownExchanges: response });
+    this.setState({
+      exchanges: exchanges,
+      ownExchanges: response,
+      apiInputCoinMarkerCap: apiKeyCoin != null ? apiKeyCoin : "",
+      apiKeyBscscan: apiKeyBscscan != null ? apiKeyBscscan : "",
+    });
   }
+
+  updateAPIs = async () => {
+    if (this.state.apiInputCoinMarkerCap !== "") {
+      let response = await getFromNode("updateConfigValue", {
+        configname: "coinMarketCapAPI",
+        configvalue: this.state.apiInputCoinMarkerCap,
+      });
+      if (response != null && !response) {
+        this.setState({ apiInputCoinMarkerCap: "" });
+      }
+    }
+    if (this.state.apiKeyBscscan !== "") {
+      let response = await getFromNode("updateConfigValue", {
+        configname: "bscScanAPI",
+        configvalue: this.state.apiKeyBscscan,
+      });
+      if (response != null && !response) {
+        this.setState({ apiKeyBscscan: "" });
+      }
+    }
+  };
 
   addExchange = async () => {
     if (
@@ -39,12 +74,12 @@ class MarketsConfig extends Component {
       this.state.apiSecretInputData !== ""
     ) {
       let data = {
-        exchange: this.state.exchangeInputData,
-        apikey: this.state.apiKeyInputData,
-        apisecret: this.state.apiSecretInputData,
+        exchange: this.state.exchangeInputData.trim(),
+        apikey: this.state.apiKeyInputData.trim(),
+        apisecret: this.state.apiSecretInputData.trim(),
         apipassword:
           this.state.apiPasswordInputData !== ""
-            ? this.state.apiPasswordInputData
+            ? this.state.apiPasswordInputData.trim()
             : undefined,
       };
       let response = await getFromNode("addExchange", data);
@@ -63,12 +98,18 @@ class MarketsConfig extends Component {
   };
 
   addMetamask = async () => {
-    if (this.state.apiKeyBscscan !== "" && this.state.metamaskAddress !== "") {
+    if (this.state.metamaskAddress !== "") {
       let data = {
         exchange: "metamask",
-        apikey: this.state.apiKeyBscscan,
-        apisecret: this.state.metamaskAddress,
-        apipassword: undefined,
+        apikey: this.state.metamaskAddress.trim(),
+        apisecret:
+          this.state.metamaskCoin !== ""
+            ? this.state.metamaskCoin.trim()
+            : undefined,
+        apipassword:
+          this.state.metamaskContract !== ""
+            ? this.state.metamaskContract.trim()
+            : undefined,
       };
       let response = await getFromNode("addExchange", data);
       if (response != null) {
@@ -84,8 +125,8 @@ class MarketsConfig extends Component {
   };
 
   saveConfig = async () => {
-    localStorage.setItem("graphType", this.state.graphSelectInput);
-    localStorage.setItem("autoUpdate", this.state.autoUpdateInput);
+    localStorage.setItem("graphType", this.state.graphSelectInput.trim());
+    localStorage.setItem("autoUpdate", this.state.autoUpdateInput.trim());
   };
 
   removeExchange = async (exchange) => {
@@ -198,10 +239,10 @@ class MarketsConfig extends Component {
             <div className="card-body">
               <ul className="list-group">
                 {this.state.ownExchanges != null &&
-                  this.state.ownExchanges.map((exchange) => {
+                  this.state.ownExchanges.map((exchange, index) => {
                     return (
                       <li
-                        key={"own-" + exchange.Name}
+                        key={"own-" + exchange.Name + "-" + index}
                         className="list-group-item d-flex justify-content-between align-items-start"
                       >
                         <span className="my-auto">{exchange.Name}</span>
@@ -219,6 +260,68 @@ class MarketsConfig extends Component {
           </div>
         </div>
         <div className="col-xl-4 mb-2">
+          <div className="card">
+            <h5 className="card-header">{t("Add a new Smart Chain Wallet")}</h5>
+            <div className="card-body">
+              <div className="mb-2">
+                <label htmlFor="metamaskAddress" className="form-label">
+                  {t("Smart Chain Address")}
+                </label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="metamaskAddress"
+                  value={this.state.metamaskAddress}
+                  onChange={(evt) =>
+                    this.setState({
+                      metamaskAddress: evt.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="mb-2">
+                <label htmlFor="metamaskContract" className="form-label">
+                  {t("Contract")}{" "}
+                  {t("(If left empty it will output only the BNB value)")}
+                </label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="metamaskContract"
+                  value={this.state.metamaskContract}
+                  onChange={(evt) =>
+                    this.setState({
+                      metamaskContract: evt.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="mb-2">
+                <label htmlFor="metamaskCoin" className="form-label">
+                  {t("Coin Symbol")}{" "}
+                  {t("(If left empty it will output only the BNB value)")}
+                </label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="metamaskCoin"
+                  value={this.state.metamaskCoin}
+                  onChange={(evt) =>
+                    this.setState({
+                      metamaskCoin: evt.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <div className="card-footer text-end">
+              <button className="btn btn-primary" onClick={this.addMetamask}>
+                {t("Add MetaMask")}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="col-xl-2 mb-2">
           <div className="card">
             <h5 className="card-header">{t("YutePort Config")}</h5>
             <div className="card-body">
@@ -276,11 +379,33 @@ class MarketsConfig extends Component {
         </div>
         <div className="col-xl-4 mb-2">
           <div className="card">
-            <h5 className="card-header">{t("Add a new Smart Chain Wallet")}</h5>
+            <h5 className="card-header">{t("APIs")}</h5>
             <div className="card-body">
               <div className="mb-2">
+                <label htmlFor="apiInputCoinmarkerCap" className="form-label">
+                  <p className="fw-bold">{t("CoinMarkerCap API")}:</p>
+                  {t(
+                    "It is used to retrieve prices if the exchange fails and for get BSC tokens."
+                  )}
+                </label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="apiInputCoinmarkerCap"
+                  value={this.state.apiInputCoinMarkerCap}
+                  onChange={(evt) =>
+                    this.setState({
+                      apiInputCoinMarkerCap: evt.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div className="mb-2">
                 <label htmlFor="apiInputMetamask" className="form-label">
-                  {t("API Key Bscscan")}
+                  <p className="fw-bold">{t("API Key Bscscan")}:</p>
+                  {t(
+                    "It is used to get the amount of tokens and BNBs you have in your BSC"
+                  )}
                 </label>
                 <input
                   className="form-control"
@@ -294,26 +419,10 @@ class MarketsConfig extends Component {
                   }
                 />
               </div>
-              <div className="mb-2">
-                <label htmlFor="metamaskAddress" className="form-label">
-                  {t("Smart Chain Address")}
-                </label>
-                <input
-                  className="form-control"
-                  type="text"
-                  id="metamaskAddress"
-                  value={this.state.metamaskAddress}
-                  onChange={(evt) =>
-                    this.setState({
-                      metamaskAddress: evt.target.value,
-                    })
-                  }
-                />
-              </div>
             </div>
             <div className="card-footer text-end">
-              <button className="btn btn-primary" onClick={this.addMetamask}>
-                {t("Add MetaMask")}
+              <button className="btn btn-primary" onClick={this.updateAPIs}>
+                {t("Update APIs")}
               </button>
             </div>
           </div>

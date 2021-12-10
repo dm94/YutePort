@@ -2,9 +2,9 @@ const { app, BrowserWindow, Menu } = require("electron");
 
 const isDev = require("electron-is-dev");
 const { ipcMain } = require("electron");
-const path = require("path");
 const exchangeController = require("./controllers/exchange");
 const transactionsController = require("./controllers/transactions");
+const configController = require("./controllers/config");
 const pjson = require("../package.json");
 
 let mainWindow;
@@ -196,4 +196,21 @@ ipcMain.handle("getCoinHistoryFormated", async (event, args) => {
     }
   }
   return null;
+});
+
+ipcMain.handle("getConfigValue", async (event, args) => {
+  if (args != null && args.configname != null) {
+    return await configController.getConfigValue(args.configname);
+  }
+  return null;
+});
+
+ipcMain.handle("updateConfigValue", async (event, args) => {
+  if (args != null && args.configname != null && args.configvalue != null) {
+    return await configController.updateConfigValue(
+      args.configname,
+      args.configvalue
+    );
+  }
+  return false;
 });

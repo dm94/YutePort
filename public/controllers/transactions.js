@@ -3,6 +3,7 @@ const ccxt = require("ccxt");
 const dbController = require("./database");
 const logController = require("./logger");
 const btcscanConnector = require("./btcscanConnector");
+const coinMarketCapConnector = require("./coinMarketCapConnector");
 
 controller.getBalance = async () => {
   let result = await dbController.query("select * from exchanges");
@@ -10,7 +11,7 @@ controller.getBalance = async () => {
   for (let i = 0; i < result.length; i++) {
     const ex = result[i];
     let exchangeBalance = [];
-    if (ex.Name != "metamask") {
+    if (ex.Name !== "metamask") {
       exchangeBalance = await controller.getBalancesFromExchange(
         ex.Name,
         ex.Key,
@@ -20,7 +21,8 @@ controller.getBalance = async () => {
     } else {
       exchangeBalance = await controller.getBalanceFromMetamask(
         ex.Key,
-        ex.Secret
+        ex.Secret,
+        ex.Password
       );
     }
     controller.updateExchangeHistory(ex.ID, exchangeBalance);
@@ -38,7 +40,7 @@ controller.getExchangeBalance = async (name) => {
   for (let i = 0; i < result.length; i++) {
     const ex = result[i];
     let exchangeBalance = [];
-    if (ex.Name != "metamask") {
+    if (ex.Name !== "metamask") {
       exchangeBalance = await controller.getBalancesFromExchange(
         ex.Name,
         ex.Key,
@@ -48,7 +50,8 @@ controller.getExchangeBalance = async (name) => {
     } else {
       exchangeBalance = await controller.getBalanceFromMetamask(
         ex.Key,
-        ex.Secret
+        ex.Secret,
+        ex.Password
       );
     }
     controller.updateExchangeHistory(ex.ID, exchangeBalance);
@@ -66,87 +69,114 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
       password: password,
     });
 
-  let balance = await exchange.fetchBalance();
-  if (balance != null && balance.total != null) {
-    totalBalance = Object.keys(balance.total)
-      .map((key) => ({
-        name: key,
-        exchange: name,
-        total: balance.total[key],
-        price: 0,
-        profit: 0,
-      }))
-      .filter((coin) => coin.total > 0);
-    const promises = totalBalance.map(async (coin) => {
-      let price = 1;
-      if (coin.name !== "USDT" && coin.name !== "USDC" && coin.name !== "USD") {
-        try {
-          let priceData = await exchange.fetchTicker(coin.name + "/USDT");
-          if (priceData != null) {
-            price = priceData.last;
-          }
-        } catch (e) {
+  try {
+    let balance = await exchange.fetchBalance();
+    if (balance != null && balance.total != null) {
+      totalBalance = Object.keys(balance.total)
+        .map((key) => ({
+          name: key,
+          exchange: name,
+          total: balance.total[key],
+          price: 0,
+          profit: 0,
+        }))
+        .filter((coin) => coin.total > 0);
+      const promises = totalBalance.map(async (coin) => {
+        let price = 1;
+        if (
+          coin.name !== "USDT" &&
+          coin.name !== "USDC" &&
+          coin.name !== "USD"
+        ) {
           try {
-            let priceData = await exchange.fetchTicker(coin.name + "/USDC");
+            let priceData = await exchange.fetchTicker(coin.name + "/USDT");
             if (priceData != null) {
               price = priceData.last;
             }
-          } catch (er) {
+          } catch (e) {
             try {
-              let priceData = await exchange.fetchTicker(coin.name + "/USD");
-              if (priceData != null) {
+              let priceData = await coinMarketCapConnector.getUSDTPriceFromCoin(
+                coin.name
+              );
+              if (priceData != null && priceData !== 0) {
                 price = priceData.last;
               }
-            } catch (ert) {
-              logController.error(ert.message);
+            } catch (er) {
+              logController.error(er.message);
             }
           }
         }
-      }
-      let profit = 0;
-      let lastTotal = await controller.getTotalHoursAgo(
-        coin.name,
-        coin.exchange,
-        24
-      );
+        let profit = 0;
+        let lastTotal = await controller.getTotalHoursAgo(
+          coin.name,
+          coin.exchange,
+          24
+        );
 
-      let total = coin.total * price;
+        let total = coin.total * price;
 
-      if (lastTotal !== 0) {
-        profit = ((total - lastTotal) / ((total + lastTotal) * 2)) * 100;
-        profit = Math.round(profit);
-      }
+        if (lastTotal !== 0) {
+          profit = ((total - lastTotal) / ((total + lastTotal) * 2)) * 100;
+          profit = Math.round(profit);
+        }
 
-      return {
-        name: coin.name,
-        exchange: coin.exchange,
-        total: coin.total,
-        price: price,
-        profit: profit,
-      };
-    });
-    return await Promise.all(promises);
+        return {
+          name: coin.name,
+          exchange: coin.exchange,
+          total: coin.total,
+          price: price,
+          profit: profit,
+        };
+      });
+      return await Promise.all(promises);
+    }
+  } catch (error) {
+    logController.error(error.message);
   }
+
   return totalBalance;
 };
 
-controller.getBalanceFromMetamask = async (apiKey, address) => {
-  let bnbPrice = await btcscanConnector.getBnbPrice(apiKey);
-  let metamaskTotal = await btcscanConnector.getBnbBalance(apiKey, address);
+controller.getBalanceFromMetamask = async (address, coinSymbol, contract) => {
+  if (coinSymbol != null && contract != null) {
+    let metamaskTotal = await btcscanConnector.getTokenBalance(
+      address,
+      contract
+    );
+    let tokenPrice = await coinMarketCapConnector.getUSDTPriceFromCoin(
+      coinSymbol
+    );
 
-  if (metamaskTotal == null || bnbPrice == null) {
-    return [];
+    if (metamaskTotal == null || tokenPrice == null) {
+      return [];
+    }
+    return [
+      {
+        name: coinSymbol,
+        exchange: "metamask",
+        total: metamaskTotal,
+        price: tokenPrice,
+        profit: 0,
+      },
+    ];
+  } else {
+    let bnbPrice = await btcscanConnector.getBnbPrice();
+    let metamaskTotal = await btcscanConnector.getBnbBalance(address);
+
+    if (metamaskTotal == null || bnbPrice == null) {
+      return [];
+    }
+
+    return [
+      {
+        name: "BNB",
+        exchange: "metamask",
+        total: metamaskTotal,
+        price: bnbPrice,
+        profit: 0,
+      },
+    ];
   }
-
-  return [
-    {
-      name: "BNB",
-      exchange: "metamask",
-      total: metamaskTotal,
-      price: bnbPrice,
-      profit: 0,
-    },
-  ];
 };
 
 /**
@@ -168,7 +198,8 @@ controller.updateExchangeHistory = async (exchangeid, balance) => {
           lastTransaction == null ||
           (lastTransaction.quantity != null &&
             lastTransaction.quantity !== coin.total) ||
-          (lastTransaction.price != null && lastTransaction.price != coin.price)
+          (lastTransaction.price != null &&
+            lastTransaction.price !== coin.price)
         ) {
           controller.insertNewTransaction(
             exchangeid,

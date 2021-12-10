@@ -58,6 +58,9 @@ controller.generateDB = () => {
   db.exec(
     "CREATE TABLE transactions (ID INTEGER PRIMARY KEY AUTOINCREMENT, exchangeid INTEGER, coinname VARCHAR(50) NOT NULL, quantity REAL NULL, price REAL NULL, date TEXT NOT NULL)"
   );
+  db.exec(
+    "CREATE TABLE config (configname VARCHAR(50) NOT NULL PRIMARY KEY, value TEXT NULL)"
+  );
 };
 
 module.exports = controller;

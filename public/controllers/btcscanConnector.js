@@ -1,10 +1,14 @@
 const controller = {};
-const Axios = require("axios");
-const logController = require("./logger");
 const BASE_URL = "https://api.bscscan.com/api";
 const Web3 = require("web3");
+const apiConnector = require("./apiConnector");
+const configController = require("./config");
 
-controller.getBnbPrice = async (apiKey = "") => {
+controller.getBnbPrice = async () => {
+  let apiKey = await configController.getConfigValue("bscScanAPI");
+  if (apiKey == null) {
+    return 0;
+  }
   const options = {
     method: "get",
     url: BASE_URL,
@@ -14,7 +18,7 @@ controller.getBnbPrice = async (apiKey = "") => {
       apikey: apiKey,
     },
   };
-  let response = await controller.apiRequest(options);
+  let response = await apiConnector.apiRequest(options);
   if (
     response != null &&
     response.result != null &&
@@ -22,10 +26,15 @@ controller.getBnbPrice = async (apiKey = "") => {
   ) {
     return response.result.ethusd;
   }
-  return null;
+  return 0;
 };
 
-controller.getBnbBalance = async (apiKey = "", address = "") => {
+controller.getBnbBalance = async (address = "") => {
+  let apiKey = await configController.getConfigValue("bscScanAPI");
+  if (apiKey == null) {
+    return 0;
+  }
+
   const options = {
     url: BASE_URL,
     params: {
@@ -36,20 +45,21 @@ controller.getBnbBalance = async (apiKey = "", address = "") => {
       apikey: apiKey,
     },
   };
-  let response = await controller.apiRequest(options);
+  let response = await apiConnector.apiRequest(options);
   if (response != null && response.result != null) {
     let bnbInWei = response.result;
     let conversion = Web3.utils.fromWei(bnbInWei);
     return conversion;
   }
-  return null;
+  return 0;
 };
 
-controller.getTokenBalance = async (
-  apiKey = "",
-  address = "",
-  contract = ""
-) => {
+controller.getTokenBalance = async (address = "", contract = "") => {
+  let apiKey = await configController.getConfigValue("bscScanAPI");
+  if (apiKey == null) {
+    return 0;
+  }
+
   const options = {
     url: BASE_URL,
     params: {
@@ -61,24 +71,13 @@ controller.getTokenBalance = async (
       apikey: apiKey,
     },
   };
-  let response = await controller.apiRequest(options);
+  let response = await apiConnector.apiRequest(options);
   if (response != null && response.result != null) {
     let tokenInWei = response.result;
     let conversion = Web3.utils.fromWei(tokenInWei);
     return conversion;
   }
-  return null;
-};
-
-controller.apiRequest = async (options) => {
-  return Axios.request(options)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      logController.error(error);
-      return null;
-    });
+  return 0;
 };
 
 module.exports = controller;

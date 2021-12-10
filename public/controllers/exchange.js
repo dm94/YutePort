@@ -15,17 +15,22 @@ controller.getOwnExchanges = async () => {
 };
 
 controller.addExchange = async (args) => {
-  if (args != null && args.exchange != null && args.apikey && args.apisecret) {
-    if (args.apipassword != null) {
+  if (args != null && args.exchange != null && args.apikey != null) {
+    if (args.apisecret != null && args.apipassword != null) {
       await dbController.run(
         "insert into exchanges(Name, Key, Secret, Password) values (?,?,?,?)",
         [args.exchange, args.apikey, args.apisecret, args.apipassword]
       );
-    } else {
+    } else if (args.apisecret != null) {
       await dbController.run(
         "insert into exchanges(Name, Key, Secret) values (?,?,?)",
         [args.exchange, args.apikey, args.apisecret]
       );
+    } else {
+      await dbController.run("insert into exchanges(Name, Key) values (?,?)", [
+        args.exchange,
+        args.apikey,
+      ]);
     }
   }
 
