@@ -79,7 +79,7 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
       .filter((coin) => coin.total > 0);
     const promises = totalBalance.map(async (coin) => {
       let price = 1;
-      if (coin.name != "USDT" && coin.name != "USDC" && coin.name != "USD") {
+      if (coin.name !== "USDT" && coin.name !== "USDC" && coin.name !== "USD") {
         try {
           let priceData = await exchange.fetchTicker(coin.name + "/USDT");
           if (priceData != null) {
@@ -167,7 +167,7 @@ controller.updateExchangeHistory = async (exchangeid, balance) => {
         if (
           lastTransaction == null ||
           (lastTransaction.quantity != null &&
-            lastTransaction.quantity != coin.total) ||
+            lastTransaction.quantity !== coin.total) ||
           (lastTransaction.price != null && lastTransaction.price != coin.price)
         ) {
           controller.insertNewTransaction(
