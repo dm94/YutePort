@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Chart } from "react-charts";
 import { getFromNode } from "../services/linker";
 
-export default (props) => {
+const CharComponent = (props) => {
   const [graphData, setData] = useState(null);
 
   const primaryAxis = useMemo(
@@ -75,3 +75,5 @@ export default (props) => {
     return "";
   }
 };
+
+export default CharComponent;

@@ -118,7 +118,7 @@ class Home extends Component {
                 <th scope="col">{t("Total")}</th>
                 <th scope="col">{t("Price USDT")}</th>
                 <th scope="col">{t("Total USDT")}</th>
-                <th scope="col">{t("Profit")}</th>
+                <th scope="col">{t("Difference 24h")}</th>
                 <th scope="col">{t("Actions")}</th>
               </tr>
             </thead>
@@ -161,7 +161,9 @@ class Home extends Component {
           <td>{coin.total}</td>
           <td>{coin.price}</td>
           <td>{coin.price * coin.total}</td>
-          <td>{coin.profit}</td>
+          <td className={coin.profit < 0 ? "text-danger" : "text-success"}>
+            {coin.profit} %
+          </td>
           <td>
             <Link to={`/transactions/${coin.exchange}/${coin.name}`}>
               <i className="fas fa-list"></i>

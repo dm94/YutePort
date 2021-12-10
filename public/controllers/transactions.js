@@ -103,12 +103,26 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
           }
         }
       }
+      let profit = 0;
+      let lastTotal = await controller.getTotalHoursAgo(
+        coin.name,
+        coin.exchange,
+        24
+      );
+
+      let total = coin.total * price;
+
+      if (lastTotal !== 0) {
+        profit = ((total - lastTotal) / ((total + lastTotal) * 2)) * 100;
+        profit = Math.round(profit);
+      }
+
       return {
         name: coin.name,
         exchange: coin.exchange,
         total: coin.total,
         price: price,
-        profit: 0,
+        profit: profit,
       };
     });
     return await Promise.all(promises);
@@ -167,6 +181,34 @@ controller.updateExchangeHistory = async (exchangeid, balance) => {
       }
     });
   }
+};
+
+/**
+ *
+ * @param {String} coinname
+ * @param {String} exchange
+ * @param {Integer} hours
+ * @returns {Number}
+ */
+
+controller.getTotalHoursAgo = async (coinname, exchange, hours = 24) => {
+  if (coinname == null || exchange == null) {
+    return 0;
+  }
+  let date = new Date();
+  let miliseconds = date.getTime();
+  let yesterday = new Date(miliseconds - hours * 60 * 60000);
+
+  let result = await dbController.get(
+    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? and transactions.date > ?",
+    [exchange, coinname, yesterday.toString()]
+  );
+
+  if (result && result.quantity != null && result.price != null) {
+    return result.quantity * result.price;
+  }
+
+  return 0;
 };
 
 controller.getCoinHistoryFromDB = async (coinname, exchange) => {

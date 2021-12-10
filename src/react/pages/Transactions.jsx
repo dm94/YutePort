@@ -59,7 +59,7 @@ class Transactions extends Component {
                 <th scope="col">{t("Total")}</th>
                 <th scope="col">{t("Price USDT")}</th>
                 <th scope="col">{t("Total USDT")}</th>
-                <th scope="col">{t("Difference")}</th>
+                <th scope="col">{t("Quantity difference")}</th>
               </tr>
             </thead>
             <tbody>{this.transactionRender()}</tbody>
@@ -75,17 +75,23 @@ class Transactions extends Component {
       return this.state.history
         .map((transaction) => {
           let difference = (lastTotal - transaction.quantity) * -1;
-          let date = new Date(transaction.date);
           lastTotal = transaction.quantity;
-          return (
-            <tr key={"transaction-" + transaction.ID}>
-              <th scope="row">{date.toLocaleString()}</th>
-              <td>{transaction.quantity}</td>
-              <td>{transaction.price}</td>
-              <td>{transaction.quantity * transaction.price}</td>
-              <td>{difference}</td>
-            </tr>
-          );
+          if (difference !== 0) {
+            let date = new Date(transaction.date);
+            return (
+              <tr key={"transaction-" + transaction.ID}>
+                <th scope="row">{date.toLocaleString()}</th>
+                <td>{transaction.quantity}</td>
+                <td>{transaction.price}</td>
+                <td>{transaction.quantity * transaction.price}</td>
+                <td className={difference > 0 ? "text-success" : "text-danger"}>
+                  {difference}
+                </td>
+              </tr>
+            );
+          } else {
+            return <tr key={"transaction-" + transaction.ID}></tr>;
+          }
         })
         .reverse();
     }
