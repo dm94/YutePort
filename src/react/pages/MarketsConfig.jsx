@@ -119,7 +119,8 @@ class MarketsConfig extends Component {
       }
       this.setState({
         metamaskAddress: "",
-        apiKeyBscscan: "",
+        metamaskCoin: "",
+        metamaskContract: "",
       });
     }
   };

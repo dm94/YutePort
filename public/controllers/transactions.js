@@ -116,7 +116,7 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
         let total = coin.total * price;
 
         if (lastTotal !== 0) {
-          profit = ((total - lastTotal) / ((total + lastTotal) * 2)) * 100;
+          profit = ((total - lastTotal) / lastTotal) * 100;
           profit = Math.round(profit);
         }
 

@@ -1,10 +1,10 @@
 {
   "name": "yuteport",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Portfolio designed to control the status of our cryptocurrencies in each exchange",
   "private": true,
-  "license": "UNLICENSED",
-  "author": "Daniel Martín",
+  "license": "MIT",
+  "author": "Dm94Dani",
   "homepage": "./",
   "repository": {
     "type": "git",
