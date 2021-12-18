@@ -5,6 +5,7 @@ const { ipcMain } = require("electron");
 const exchangeController = require("./controllers/exchange");
 const transactionsController = require("./controllers/transactions");
 const configController = require("./controllers/config");
+const dbController = require("./controllers/database");
 const pjson = require("../package.json");
 
 let mainWindow;
@@ -64,7 +65,7 @@ function createWindow() {
     mainWindow.webContents.send("ping", "🤘")
   );
 }
-
+dbController.generateDB();
 app.on("ready", createWindow);
 
 app.on("window-all-closed", () => {

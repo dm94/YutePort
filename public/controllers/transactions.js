@@ -231,7 +231,7 @@ controller.getTotalHoursAgo = async (coinname, exchange, hours = 24) => {
   let yesterday = new Date(miliseconds - hours * 60 * 60000);
 
   let result = await dbController.get(
-    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? and transactions.date > ?",
+    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? and transactions.date > ? order by transactions.date",
     [exchange, coinname, yesterday.toString()]
   );
 

@@ -7,8 +7,6 @@ const Database = require("better-sqlite3");
 const logController = require("./logger");
 
 controller.query = async (sql, params = []) => {
-  await controller.generateDB();
-
   const db = new Database(dbLocation);
   const stmt = db.prepare(sql);
   const result = stmt.all(params);
@@ -17,8 +15,6 @@ controller.query = async (sql, params = []) => {
 };
 
 controller.get = async (sql, params = []) => {
-  await controller.generateDB();
-
   const db = new Database(dbLocation);
   const stmt = db.prepare(sql);
   const result = stmt.get(params);
@@ -27,8 +23,6 @@ controller.get = async (sql, params = []) => {
 };
 
 controller.run = async (sql, params = []) => {
-  await controller.generateDB();
-
   try {
     const db = new Database(dbLocation);
     const stmt = db.prepare(sql);
