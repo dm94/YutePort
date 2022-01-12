@@ -150,13 +150,26 @@ controller.getBalanceFromMetamask = async (address, coinSymbol, contract) => {
     if (metamaskTotal == null || tokenPrice == null) {
       return [];
     }
+    let profit = 0;
+    let lastTotal = await controller.getTotalHoursAgo(
+      coinSymbol,
+      "metamask",
+      24
+    );
+
+    let total = tokenPrice * metamaskTotal;
+
+    if (lastTotal !== 0) {
+      profit = ((total - lastTotal) / lastTotal) * 100;
+      profit = Math.round(profit);
+    }
     return [
       {
         name: coinSymbol,
         exchange: "metamask",
         total: metamaskTotal,
         price: tokenPrice,
-        profit: 0,
+        profit: profit,
       },
     ];
   } else {
@@ -206,7 +219,7 @@ controller.updateExchangeHistory = async (exchangeid, balance) => {
             coin.name,
             coin.total,
             coin.price,
-            date.toString()
+            date.toISOString()
           );
         }
       }
@@ -231,8 +244,8 @@ controller.getTotalHoursAgo = async (coinname, exchange, hours = 24) => {
   let yesterday = new Date(miliseconds - hours * 60 * 60000);
 
   let result = await dbController.get(
-    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? and transactions.date > ? order by transactions.date",
-    [exchange, coinname, yesterday.toString()]
+    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? and transactions.date < ? order by transactions.date desc",
+    [exchange, coinname, yesterday.toISOString()]
   );
 
   if (result && result.quantity != null && result.price != null) {
