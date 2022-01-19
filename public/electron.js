@@ -67,7 +67,7 @@ function createWindow() {
 }
 dbController.generateDB();
 app.on("ready", createWindow);
-
+transactionsController.updateBalance();
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();

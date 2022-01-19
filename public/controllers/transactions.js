@@ -5,7 +5,7 @@ const logController = require("./logger");
 const btcscanConnector = require("./btcscanConnector");
 const coinMarketCapConnector = require("./coinMarketCapConnector");
 
-controller.getBalance = async () => {
+controller.updateBalance = async () => {
   let result = await dbController.query("select * from exchanges");
   let allBalances = [];
   for (let i = 0; i < result.length; i++) {
@@ -26,6 +26,24 @@ controller.getBalance = async () => {
       );
     }
     controller.updateExchangeHistory(ex.ID, exchangeBalance);
+    allBalances = allBalances.concat(exchangeBalance);
+  }
+  return allBalances;
+};
+
+controller.getBalance = async () => {
+  let result = await dbController.query("select * from exchanges");
+  let allBalances = [];
+  for (let i = 0; i < result.length; i++) {
+    const ex = result[i];
+    let exchangeBalance = [];
+    if (ex.Name !== "metamask") {
+    } else {
+      exchangeBalance = await controller.getCoinBalanceFromDB(
+        ex.Secret ? ex.Secret : "BNB",
+        ex.Name
+      );
+    }
     allBalances = allBalances.concat(exchangeBalance);
   }
   return allBalances;
@@ -194,12 +212,12 @@ controller.getBalanceFromMetamask = async (address, coinSymbol, contract) => {
 
 /**
  *
- * @param {Number} exchangeid
+ * @param {Number} exchangeId
  * @param {Array} balance
  */
 
-controller.updateExchangeHistory = async (exchangeid, balance) => {
-  if (exchangeid != null && balance != null) {
+controller.updateExchangeHistory = async (exchangeId, balance) => {
+  if (exchangeId != null && balance != null) {
     let date = new Date();
     balance.map(async (coin) => {
       if (coin.name != null && coin.total != null) {
@@ -215,7 +233,7 @@ controller.updateExchangeHistory = async (exchangeid, balance) => {
             lastTransaction.price !== coin.price)
         ) {
           controller.insertNewTransaction(
-            exchangeid,
+            exchangeId,
             coin.name,
             coin.total,
             coin.price,
@@ -229,14 +247,14 @@ controller.updateExchangeHistory = async (exchangeid, balance) => {
 
 /**
  *
- * @param {String} coinname
+ * @param {String} coinName
  * @param {String} exchange
  * @param {Integer} hours
  * @returns {Number}
  */
 
-controller.getTotalHoursAgo = async (coinname, exchange, hours = 24) => {
-  if (coinname == null || exchange == null) {
+controller.getTotalHoursAgo = async (coinName, exchange, hours = 24) => {
+  if (coinName == null || exchange == null) {
     return 0;
   }
   let date = new Date();
@@ -245,7 +263,7 @@ controller.getTotalHoursAgo = async (coinname, exchange, hours = 24) => {
 
   let result = await dbController.get(
     "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? and transactions.date < ? order by transactions.date desc",
-    [exchange, coinname, yesterday.toISOString()]
+    [exchange, coinName, yesterday.toISOString()]
   );
 
   if (result && result.quantity != null && result.price != null) {
@@ -255,27 +273,69 @@ controller.getTotalHoursAgo = async (coinname, exchange, hours = 24) => {
   return 0;
 };
 
-controller.getCoinHistoryFromDB = async (coinname, exchange) => {
-  if (coinname == null || exchange == null) {
+controller.getCoinHistoryFromDB = async (coinName, exchange) => {
+  if (coinName == null || exchange == null) {
     return [];
   }
 
   let result = await dbController.query(
     "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=?",
-    [exchange, coinname]
+    [exchange, coinName]
   );
 
   return result;
 };
 
-controller.getLastCoinTransactionFromDB = async (coinname, exchange) => {
-  if (coinname == null || exchange == null) {
+controller.getExchangeBalanceFromDB = async (exchange) => {};
+
+controller.getCoinBalanceFromDB = async (coinName, exchange) => {
+  if (coinName == null || exchange == null) {
+    return null;
+  }
+
+  let quantity = 0;
+  let price = 0;
+  let profit = 0;
+
+  console.log("Name: " + coinName);
+  console.log("Exchange: " + exchange);
+
+  let lastTransaction = await controller.getLastCoinTransactionFromDB(
+    coinName,
+    exchange
+  );
+
+  if (lastTransaction != null) {
+    quantity = lastTransaction.quantity;
+    price = lastTransaction.price;
+  }
+
+  let lastTotal = await controller.getTotalHoursAgo(coinName, exchange, 24);
+
+  let total = quantity * price;
+
+  if (lastTotal !== 0) {
+    profit = ((total - lastTotal) / lastTotal) * 100;
+    profit = Math.round(profit);
+  }
+
+  return {
+    name: coinName,
+    exchange: exchange,
+    total: quantity,
+    price: price,
+    profit: profit,
+  };
+};
+
+controller.getLastCoinTransactionFromDB = async (coinName, exchange) => {
+  if (coinName == null || exchange == null) {
     return [];
   }
 
   let result = await dbController.get(
-    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=?",
-    [exchange, coinname]
+    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? order by transactions.ID DESC",
+    [exchange, coinName]
   );
 
   return result;
@@ -284,7 +344,7 @@ controller.getLastCoinTransactionFromDB = async (coinname, exchange) => {
 /**
  * Insert new transaction in DB
  * @param {Number} exchangeID
- * @param {String} coinname
+ * @param {String} coinName
  * @param {Number} quantity
  * @param {Number} price
  * @param {String} date
@@ -293,14 +353,14 @@ controller.getLastCoinTransactionFromDB = async (coinname, exchange) => {
 
 controller.insertNewTransaction = async (
   exchangeID,
-  coinname,
+  coinName,
   quantity,
   price,
   date
 ) => {
   if (
     exchangeID == null ||
-    coinname == null ||
+    coinName == null ||
     quantity == null ||
     price == null ||
     date == null
@@ -310,7 +370,7 @@ controller.insertNewTransaction = async (
 
   return await dbController.run(
     "insert into transactions(exchangeid, coinname, quantity, price, date) values (?,?,?,?,?)",
-    [exchangeID, coinname, quantity, price, date]
+    [exchangeID, coinName, quantity, price, date]
   );
 };
 
