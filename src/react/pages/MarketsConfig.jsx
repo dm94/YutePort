@@ -11,9 +11,7 @@ class MarketsConfig extends Component {
       graphSelectInput: localStorage.getItem("graphType")
         ? localStorage.getItem("graphType")
         : "usdt",
-      autoUpdateInput: localStorage.getItem("autoUpdate")
-        ? localStorage.getItem("autoUpdate")
-        : "off",
+      autoUpdateInput: "off",
       exchangeInputData: "",
       apiKeyInputData: "",
       apiSecretInputData: "",
@@ -38,11 +36,16 @@ class MarketsConfig extends Component {
       configname: "bscScanAPI",
     });
 
+    let autoUpdate = await getFromNode("getConfigValue", {
+      configname: "autoUpdate",
+    });
+
     this.setState({
       exchanges: exchanges,
       ownExchanges: response,
       apiInputCoinMarkerCap: apiKeyCoin != null ? apiKeyCoin : "",
       apiKeyBscscan: apiKeyBscscan != null ? apiKeyBscscan : "",
+      autoUpdateInput: autoUpdate != null ? autoUpdate : "off",
     });
   }
 
@@ -128,6 +131,10 @@ class MarketsConfig extends Component {
   saveConfig = async () => {
     localStorage.setItem("graphType", this.state.graphSelectInput.trim());
     localStorage.setItem("autoUpdate", this.state.autoUpdateInput.trim());
+    getFromNode("updateConfigValue", {
+      configname: "autoUpdate",
+      configvalue: this.state.autoUpdateInput.trim(),
+    });
   };
 
   removeExchange = async (exchange) => {

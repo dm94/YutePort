@@ -9,6 +9,7 @@ const dbController = require("./controllers/database");
 const pjson = require("../package.json");
 
 let mainWindow;
+let timer = null;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -60,14 +61,33 @@ function createWindow() {
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
-  mainWindow.on("closed", () => (mainWindow = null));
+  mainWindow.on("closed", () => {
+    if (timer != null) {
+      clearTimeout(timer);
+    }
+    mainWindow = null;
+  });
   mainWindow.webContents.on("did-finish-load", () =>
     mainWindow.webContents.send("ping", "🤘")
   );
 }
+
 dbController.generateDB();
 app.on("ready", createWindow);
 transactionsController.updateBalance();
+
+const autoUpdateBalance = async () => {
+  let autoUpdate = await configController.getConfigValue("autoUpdate");
+  if (autoUpdate && autoUpdate !== "off") {
+    timer = setInterval(
+      transactionsController.updateBalance(),
+      60000 * autoUpdate
+    );
+  }
+};
+
+autoUpdateBalance();
+
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();

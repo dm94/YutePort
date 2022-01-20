@@ -38,15 +38,28 @@ controller.getBalance = async () => {
     const ex = result[i];
     let exchangeBalance = [];
     if (ex.Name !== "metamask") {
+      let resultCoins = await dbController.query(
+        "SELECT coinname, exchangeid FROM transactions WHERE exchangeid = '" +
+          ex.ID +
+          "' GROUP BY coinname"
+      );
+      for (let x = 0; x < resultCoins.length; x++) {
+        const coinData = resultCoins[x];
+        exchangeBalance = await controller.getCoinBalanceFromDB(
+          coinData.coinname,
+          ex.Name
+        );
+        allBalances = allBalances.concat(exchangeBalance);
+      }
     } else {
       exchangeBalance = await controller.getCoinBalanceFromDB(
         ex.Secret ? ex.Secret : "BNB",
         ex.Name
       );
+      allBalances = allBalances.concat(exchangeBalance);
     }
-    allBalances = allBalances.concat(exchangeBalance);
   }
-  return allBalances;
+  return allBalances.filter((coin) => coin.total > 0);
 };
 
 controller.getExchangeBalance = async (name) => {
@@ -90,21 +103,20 @@ controller.getBalancesFromExchange = async (name, key, secret, password) => {
   try {
     let balance = await exchange.fetchBalance();
     if (balance != null && balance.total != null) {
-      totalBalance = Object.keys(balance.total)
-        .map((key) => ({
-          name: key,
-          exchange: name,
-          total: balance.total[key],
-          price: 0,
-          profit: 0,
-        }))
-        .filter((coin) => coin.total > 0);
+      totalBalance = Object.keys(balance.total).map((key) => ({
+        name: key,
+        exchange: name,
+        total: balance.total[key],
+        price: 0,
+        profit: 0,
+      }));
       const promises = totalBalance.map(async (coin) => {
-        let price = 1;
+        let price = 0;
         if (
           coin.name !== "USDT" &&
           coin.name !== "USDC" &&
-          coin.name !== "USD"
+          coin.name !== "USD" &&
+          coin.total > 0
         ) {
           try {
             let priceData = await exchange.fetchTicker(coin.name + "/USDT");
@@ -286,7 +298,39 @@ controller.getCoinHistoryFromDB = async (coinName, exchange) => {
   return result;
 };
 
-controller.getExchangeBalanceFromDB = async (exchange) => {};
+controller.getExchangeBalanceFromDB = async (exchange) => {
+  let result = await dbController.query(
+    "select * from exchanges where Name = ?",
+    [exchange]
+  );
+  let allBalances = [];
+  for (let i = 0; i < result.length; i++) {
+    const ex = result[i];
+    let exchangeBalance = [];
+    if (ex.Name !== "metamask") {
+      let resultCoins = await dbController.query(
+        "SELECT coinname, exchangeid FROM transactions WHERE exchangeid = '" +
+          ex.ID +
+          "' GROUP BY coinname"
+      );
+      for (let x = 0; x < resultCoins.length; x++) {
+        const coinData = resultCoins[x];
+        exchangeBalance = await controller.getCoinBalanceFromDB(
+          coinData.coinname,
+          ex.Name
+        );
+        allBalances = allBalances.concat(exchangeBalance);
+      }
+    } else {
+      exchangeBalance = await controller.getCoinBalanceFromDB(
+        ex.Secret ? ex.Secret : "BNB",
+        ex.Name
+      );
+      allBalances = allBalances.concat(exchangeBalance);
+    }
+  }
+  return allBalances.filter((coin) => coin.total > 0);
+};
 
 controller.getCoinBalanceFromDB = async (coinName, exchange) => {
   if (coinName == null || exchange == null) {
@@ -296,9 +340,6 @@ controller.getCoinBalanceFromDB = async (coinName, exchange) => {
   let quantity = 0;
   let price = 0;
   let profit = 0;
-
-  console.log("Name: " + coinName);
-  console.log("Exchange: " + exchange);
 
   let lastTransaction = await controller.getLastCoinTransactionFromDB(
     coinName,

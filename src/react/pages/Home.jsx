@@ -41,7 +41,7 @@ class Home extends Component {
     if (this.state.exchangeFilter === "All") {
       response = await getFromNode("getBalance");
     } else {
-      response = await getFromNode("getBalanceFromExchange", {
+      response = await getFromNode("getExchangeBalanceFromDB", {
         exchange: this.state.exchangeFilter,
       });
     }
