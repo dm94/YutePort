@@ -74,8 +74,12 @@ controller.getTokenBalance = async (address = "", contract = "") => {
   let response = await apiConnector.apiRequest(options);
   if (response != null && response.result != null) {
     let tokenInWei = response.result;
-    let conversion = Web3.utils.fromWei(tokenInWei);
-    return conversion;
+    try {
+      let conversion = Web3.utils.fromWei(tokenInWei);
+      return conversion;
+    } catch (e) {
+      console.log("Error when trying to convert from Wei", response.result);
+    }
   }
   return 0;
 };

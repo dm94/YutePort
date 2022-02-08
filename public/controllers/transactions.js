@@ -88,7 +88,7 @@ controller.getExchangeBalance = async (name) => {
     controller.updateExchangeHistory(ex.ID, exchangeBalance);
     allBalances = allBalances.concat(exchangeBalance);
   }
-  return allBalances;
+  return allBalances.filter((coin) => coin.total > 0);
 };
 
 controller.getBalancesFromExchange = async (name, key, secret, password) => {
@@ -285,14 +285,18 @@ controller.getTotalHoursAgo = async (coinName, exchange, hours = 24) => {
   return 0;
 };
 
-controller.getCoinHistoryFromDB = async (coinName, exchange) => {
+controller.getCoinHistoryFromDB = async (coinName, exchange, hours = 168) => {
   if (coinName == null || exchange == null) {
     return [];
   }
 
+  let date = new Date();
+  let miliseconds = date.getTime();
+  let lastDay = new Date(miliseconds - hours * 60 * 60000);
+
   let result = await dbController.query(
-    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=?",
-    [exchange, coinName]
+    "select transactions.ID, exchanges.name exchange, transactions.coinname, transactions.quantity, transactions.price, transactions.date from transactions, exchanges where transactions.exchangeid=exchanges.ID and exchanges.Name=? and transactions.coinname=? and transactions.date < ? order by transactions.date desc",
+    [exchange, coinName, lastDay.toISOString()]
   );
 
   return result;

@@ -73,21 +73,19 @@ function createWindow() {
 }
 
 dbController.generateDB();
-app.on("ready", createWindow);
 transactionsController.updateBalance();
 
 const autoUpdateBalance = async () => {
   let autoUpdate = await configController.getConfigValue("autoUpdate");
   if (autoUpdate && autoUpdate !== "off") {
     timer = setInterval(
-      transactionsController.updateBalance(),
+      () => transactionsController.updateBalance(),
       60000 * autoUpdate
     );
   }
 };
-
 autoUpdateBalance();
-
+app.on("ready", createWindow);
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
@@ -124,9 +122,9 @@ ipcMain.handle("getBalance", async (event, args) => {
   return await transactionsController.getBalance();
 });
 
-ipcMain.handle("getBalanceFromExchange", async (event, args) => {
+ipcMain.handle("getExchangeBalance", async (event, args) => {
   if (args != null && args.exchange != null) {
-    return await transactionsController.getExchangeBalance(args.exchange);
+    return await transactionsController.getExchangeBalanceFromDB(args.exchange);
   }
   return [];
 });
