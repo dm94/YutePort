@@ -1,3 +1,6 @@
+## Project archived. Alternative -> [rotki](https://github.com/rotki/rotki)
+
+
 ## Description
 
 YutePort is a simple portfolio designed to control the status of our cryptocurrencies in each exchange in an easy and automatic way.
